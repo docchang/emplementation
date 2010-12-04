@@ -1,0 +1,30 @@
+application: emplementation
+version: 1
+runtime: python
+api_version: 1
+
+builtins:
+- datastore_admin: on
+
+handlers:
+- url: /
+  script: guestbook.py
+
+- url: /sign
+  script: guestbook.py
+
+- url: /rpx_response
+  script: guestbook.py
+
+- url: /images
+  static_dir: images
+
+- url: /javascripts
+  static_dir: javascripts
+  
+- url: /stylesheets
+  static_dir: stylesheets
+
+# All other URLs use the not_found.py script.
+- url: /.*
+  script: not_found.py

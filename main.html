@@ -1,0 +1,51 @@
+<html>
+<head>
+    <title>Guestbook Application</title>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+    <script type="text/javascript" src="/javascripts/jquery-1.4.min.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.dateFormat-1.0.dc.js"></script>
+    <script type="text/javascript" src="/javascripts/guestbook.js"></script>    
+</head>
+<body onload="javascript:StartUp();">
+    <div>
+        <h1>
+            Welcome to Dominic's Guestbook
+            <a href="http://emplementation.blogspot.com/" target="_blank"><img alt="" src="/images/blogger.png" /></a>
+        </h1>
+        <h3>
+            Timezone:
+            <script type="text/javascript">document.write(Timezone);</script>
+        </h3>
+    </div>
+
+    {% for greeting in greetings %}
+    <div>
+        [{{greeting.content}}]<------<b>
+        {% ifequal greeting.author None %}
+            Anonymous
+        {% else %}
+            {{greeting.author}}
+        {% endifequal %}
+        </b>@
+        <span class="UTCTimestamp">{{greeting.date}}</span>
+    </div>
+    {% endfor %}
+
+    <form action="/sign" method="post" accept-charset="utf-8">    
+    <p>
+        Message:<input type="text" name="content" value="" id="content" />
+    </p>
+    <p>
+        <input type="submit" value="Sign Guestbook" />
+    </p>
+    </form>
+    <script type="text/javascript">
+        var rpxJsHost = (("https:" == document.location.protocol) ? "https://" : "http://static.");
+        document.write(unescape("%3Cscript src='" + rpxJsHost + "rpxnow.com/js/lib/rpx.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+        RPXNOW.overlay = true;
+        RPXNOW.language_preference = 'en';
+    </script>
+</body>
+</html>
