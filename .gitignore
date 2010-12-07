@@ -1,4 +1,7 @@
 
+*.pyc
+.*
+README~
 api.txt
 #ignore thumbnails created by windows
 Thumbs.db
