@@ -14,90 +14,102 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import wsgiref.handlers
-import urllib
-import urllib2
+import rpxtokenurl
+
+#import wsgiref.handlers
+#import urllib
+#import urllib2
+
 
 from google.appengine.api import users
 from google.appengine.ext import db, webapp
 from google.appengine.ext.webapp import template
-from django.utils import simplejson
+from google.appengine.ext.webapp.util import run_wsgi_app
+#from django.utils import simplejson
 
-class User(db.Model):
-    identifier = db.StringProperty()
-    name = db.StringProperty()
-    givenName = db.StringProperty()
-    familyName = db.StringProperty()
-    displayName = db.StringProperty()
-    preferredUsername = db.StringProperty()
-    verifiedEmail = db.StringProperty()
+#class User(db.Model):
+#    identifier = db.StringProperty()
+#    name = db.StringProperty()
+#    givenName = db.StringProperty()
+#    familyName = db.StringProperty()
+#    displayName = db.StringProperty()
+#    preferredUsername = db.StringProperty()
+#    verifiedEmail = db.StringProperty()
 
 class Greeting(db.Model):
     author = db.UserProperty()
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now_add=True)
-
-class RPXTokenHandler(webapp.RequestHandler):    
-    def post(self):
-        token = self.request.get('token')
-        url = 'https://rpxnow.com/api/v2/auth_info'
-        api_params = {'format': 'json',
-                'apiKey': '',
-                'token': token}
-        
-        http_response = urllib2.urlopen(url, urllib.urlencode(api_params))
-
-        # read the json response
-        auth_info_json = http_response.read()
-
-        # Step 3) process the json response
-        #auth_info = json.loads(auth_info_json)        
-        auth_info = simplejson.loads(auth_info_json)
-
-        # Step 4) use the response to sign the user in
-        if auth_info['stat'] == 'ok':
-            profile = auth_info['profile']
-            
-            user = User()
-            user.identifier = profile['identifier']
-            user.displayName = profile['displayName']
-            user.preferredUsername = profile['preferredUsername']
-            try:
-                user.verifiedEmail = profile['verifiedEmail']
-            except:
-                user.verifiedEmail = None
-            try:
-                user.name = profile['name']['formatted']
-            except:
-                user.name = None
-            try:
-                user.givenName = profile['name']['givenName']
-            except:
-                user.givenName = None              
-            try:
-                user.familyName = profile['name']['familyName']
-            except:
-                user.familyName = None
-            
-            user.put()
-            
-            users.User(federated_identity=user.identifier)
-            self.redirect('/')
-        else:
-            self.redirect('/error')
+#
+#class RPXTokenHandler(webapp.RequestHandler):    
+#    def post(self):
+#        token = self.request.get('token')
+#        url = 'https://rpxnow.com/api/v2/auth_info'
+#        api_params = {'format': 'json',
+#                'apiKey': '',
+#                'token': token}
+#        
+#        http_response = urllib2.urlopen(url, urllib.urlencode(api_params))
+#
+#        # read the json response
+#        auth_info_json = http_response.read()
+#
+#        # Step 3) process the json response
+#        #auth_info = json.loads(auth_info_json)        
+#        auth_info = simplejson.loads(auth_info_json)
+#
+#        # Step 4) use the response to sign the user in
+#        if auth_info['stat'] == 'ok':
+#            profile = auth_info['profile']
+#            
+#            user = User()
+#            user.identifier = profile['identifier']
+#            user.displayName = profile['displayName']
+#            user.preferredUsername = profile['preferredUsername']
+#            try:
+#                user.verifiedEmail = profile['verifiedEmail']
+#            except:
+#                user.verifiedEmail = None
+#            try:
+#                user.name = profile['name']['formatted']
+#            except:
+#                user.name = None
+#            try:
+#                user.givenName = profile['name']['givenName']
+#            except:
+#                user.givenName = None              
+#            try:
+#                user.familyName = profile['name']['familyName']
+#            except:
+#                user.familyName = None
+#            
+#            user.put()
+#            
+#            users.User(federated_identity=user.identifier)
+#            self.redirect('/')
+#        else:
+#            self.redirect('/error')
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
         user = users.get_current_user()
-        #dURL = "/"
 
         if user:  # signed in already
             self.response.out.write('Hello <em>%s</em>! [<a href="%s">sign out</a>]' % (
               user.nickname(),
               users.create_logout_url(self.request.uri)))
         else:     # let user choose authenticator
-            self.response.out.write('<a class="rpxnow" onclick="return false;" href="https://emplementation.rpxnow.com/openid/v2/signin?token_url=http%3A%2F%2Femplementation.appspot.com%2Frpx_response"> Sign In </a>')
-            #self.response.out.write('<a class="rpxnow" onclick="return false;" href="https://emplementation.rpxnow.com/openid/v2/signin?token_url=http%3A%2F%2Flocalhost:8082%2Frpx_response"> Sign In </a>')
+            
+            #http://emplementation.appspot.com/rpx_response
+            url = 'http%3A%2F%2Femplementation.appspot.com%2Frpx_response'
+            
+            #localhost:8080/rpx_response
+            #url = 'http%3A%2F%2Flocalhost%3A8080%2Frpx_response'            
+            
+            #localhost/rpx_response
+            #url = http%3A%2F%2Flocalhost%2Frpx_response
+            
+            self.response.out.write('<a class="rpxnow" onclick="return false;" href="https://emplementation.rpxnow.com/openid/v2/signin?token_url=' + url + '"> Sign In </a>')
 
 #            self.response.out.write('Hello world! Sign in at: ')
 #            pName = "Facebook"
@@ -136,11 +148,12 @@ class Guestbook(webapp.RequestHandler):
 application = webapp.WSGIApplication([
     ('/', MainHandler),
     ('/sign', Guestbook),
-    ('/rpx_response', RPXTokenHandler),
+    ('/rpx_response', rpxtokenurl.RPXTokenHandler),
 ], debug=True)
 
-def main():
-    wsgiref.handlers.CGIHandler().run(application)
+def main():    
+    run_wsgi_app(application)
+    #wsgiref.handlers.CGIHandler().run(application)
 
 if __name__ == '__main__':
     main()
