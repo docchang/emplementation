@@ -1,6 +1,6 @@
 
 *.pyc
-.*
+.gitignore
 README~
 api.txt
 #ignore thumbnails created by windows
